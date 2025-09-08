@@ -34,9 +34,10 @@ LCD_PortType LCD_Port[] = {
 LCD_PinType LCD_Pin[] = {
 		D4_Pin,D5_Pin,D6_Pin,D7_Pin
 };
+int frecuencia = 1;
+int dutty = 0;
+int cambio = 0 ;
 
-int contador = 0;
-int flag = 0 ;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -123,11 +124,26 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1)
-	{	LCD_xy(&LCD, 6, 1);
+	while (1){
+		if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14)==0){
+			HAL_Delay(500);
+			if(cambio==0){
+			cambio=1;
+			}
+			else{
+				cambio=0;
+			}
+		}
+		LCD_xy(&LCD, 11, 0);
+		LCD_cadena(&LCD, "     ");
+		LCD_xy(&LCD, 11, 0);
+		LCD_entero(&LCD,frecuencia);
+		LCD_cadena(&LCD, "Hz");
+
+		LCD_xy(&LCD, 6, 1);
 		LCD_cadena(&LCD, "     ");
 		LCD_xy(&LCD, 6, 1);
-		LCD_entero(&LCD,contador);
+		LCD_entero(&LCD,dutty);
 		LCD_cadena(&LCD, "%");
 		HAL_Delay(300);
 
@@ -599,19 +615,34 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			GPIO_PinState pin12_state = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12);
 			GPIO_PinState pin15_state = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15);
 
-			if (pin15_state == GPIO_PIN_RESET) {
+			if ((pin15_state == GPIO_PIN_RESET)&&cambio==1) {
 				if (pin12_state == GPIO_PIN_SET) {
-					contador--;
+					dutty--;
 				} else {
-					contador++;
+					dutty++;
+				}
+
+				if(dutty>=100){
+					dutty=100;
+				}
+				if(dutty<=0){
+					dutty=0;
 				}
 			}
 
-			if(contador>=100){
-				contador=100;
-			}
-			if(contador<=0){
-				contador=0;
+			if ((pin15_state == GPIO_PIN_RESET)&&cambio==0) {
+				if (pin12_state == GPIO_PIN_SET) {
+					frecuencia--;
+				} else {
+					frecuencia++;
+				}
+				if(frecuencia>=500){
+					frecuencia=500;
+				}
+				if(frecuencia<=1){
+					frecuencia=1;
+				}
+
 			}
 			last_interrupt_time = current_time;
 			EXTI->IMR |= (GPIO_PIN_15 | GPIO_PIN_12);
