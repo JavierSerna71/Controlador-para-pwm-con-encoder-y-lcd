@@ -5,5 +5,5 @@
 ../Core/librerias/LCD.c:88:6:LCD_cadena	32	static
 ../Core/librerias/LCD.c:94:6:LCD_xy	16	static
 ../Core/librerias/LCD.c:103:6:LCD_clear	16	static
-../Core/librerias/LCD.c:111:6:LCD_entero	32	static
-../Core/librerias/LCD.c:118:6:pintarplantilla	16	static
+../Core/librerias/LCD.c:111:6:LCD_entero	40	static
+../Core/librerias/LCD.c:129:6:pintarplantilla	16	static

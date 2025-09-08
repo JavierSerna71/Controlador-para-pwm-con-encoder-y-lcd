@@ -34,9 +34,7 @@ LCD_PortType LCD_Port[] = {
 LCD_PinType LCD_Pin[] = {
 		D4_Pin,D5_Pin,D6_Pin,D7_Pin
 };
-int frecuencia = 1;
-int dutty = 0;
-int cambio = 0 ;
+int frecuencia = 4,dutty = 10,cambio = 0,periodo = 0,last_frecuencia=0,last_dutty=0;
 
 /* USER CODE END PTD */
 
@@ -58,7 +56,6 @@ RTC_HandleTypeDef hrtc;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
 
@@ -72,7 +69,6 @@ static void MX_RTC_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
-static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -116,36 +112,75 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
-  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 	LCD_Structura LCD = LCD_Create(LCD_Port, LCD_Pin, RS_Port, RS_Pin, EN_Port, EN_Pin);
 	pintarplantilla(&LCD);
+
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1){
-		if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14)==0){
-			HAL_Delay(500);
-			if(cambio==0){
-			cambio=1;
-			}
-			else{
-				cambio=0;
-			}
-		}
-		LCD_xy(&LCD, 11, 0);
-		LCD_cadena(&LCD, "     ");
-		LCD_xy(&LCD, 11, 0);
-		LCD_entero(&LCD,frecuencia);
-		LCD_cadena(&LCD, "Hz");
+	    if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == 0) {
+	        HAL_Delay(200);
+	        cambio = !cambio;
+	    }
 
-		LCD_xy(&LCD, 6, 1);
-		LCD_cadena(&LCD, "     ");
-		LCD_xy(&LCD, 6, 1);
-		LCD_entero(&LCD,dutty);
-		LCD_cadena(&LCD, "%");
-		HAL_Delay(300);
+		periodo=(417*500)/frecuencia;
+
+		htim1.Instance->PSC=periodo;
+		htim1.Instance->CCR1=dutty;
+		htim1.Instance->CCR2=dutty;
+		htim1.Instance->CCR3=dutty;
+		htim1.Instance->CCR4=dutty;
+
+		htim2.Instance->PSC=periodo;
+		htim2.Instance->CCR1=dutty;
+		htim2.Instance->CCR2=dutty;
+		htim2.Instance->CCR3=dutty;
+		htim2.Instance->CCR4=dutty;
+
+		htim3.Instance->PSC=periodo;
+		htim3.Instance->CCR1=dutty;
+		htim3.Instance->CCR2=dutty;
+		htim3.Instance->CCR3=dutty;
+		htim3.Instance->CCR4=dutty;
+
+
+
+
+	    if (frecuencia != last_frecuencia) {
+	        LCD_xy(&LCD, 11, 0);
+	        LCD_cadena(&LCD, "     ");
+	        LCD_xy(&LCD, 11, 0);
+	        LCD_entero(&LCD, frecuencia);
+	        LCD_cadena(&LCD, "Hz");
+	        last_frecuencia = frecuencia;
+	    }
+	    if (dutty != last_dutty) {
+	        LCD_xy(&LCD, 6, 1);
+	        LCD_cadena(&LCD, "     ");
+	        LCD_xy(&LCD, 6, 1);
+	        LCD_entero(&LCD, dutty);
+	        LCD_cadena(&LCD, "%");
+	        last_dutty = dutty;
+	    }
+
+	    HAL_Delay(100);
 
     /* USER CODE END WHILE */
 
@@ -192,8 +227,8 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV16;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV8;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV8;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
@@ -308,9 +343,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 417;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 65535;
+  htim1.Init.Period = 100;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -384,9 +419,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = 417;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
+  htim2.Init.Period = 100;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
@@ -445,9 +480,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
+  htim3.Init.Prescaler = 417;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 65535;
+  htim3.Init.Period = 100;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
@@ -484,55 +519,6 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 2 */
   HAL_TIM_MspPostInit(&htim3);
-
-}
-
-/**
-  * @brief TIM4 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM4_Init(void)
-{
-
-  /* USER CODE BEGIN TIM4_Init 0 */
-
-  /* USER CODE END TIM4_Init 0 */
-
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
-
-  /* USER CODE BEGIN TIM4_Init 1 */
-
-  /* USER CODE END TIM4_Init 1 */
-  htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
-  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 65535;
-  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM4_Init 2 */
-
-  /* USER CODE END TIM4_Init 2 */
-  HAL_TIM_MspPostInit(&htim4);
 
 }
 
@@ -639,8 +625,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				if(frecuencia>=500){
 					frecuencia=500;
 				}
-				if(frecuencia<=1){
-					frecuencia=1;
+				if(frecuencia<=4){
+					frecuencia=4;
 				}
 
 			}

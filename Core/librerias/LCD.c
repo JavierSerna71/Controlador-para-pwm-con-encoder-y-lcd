@@ -109,9 +109,20 @@ void LCD_clear(LCD_Structura *LCD){
 
 
 void LCD_entero(LCD_Structura *LCD, int numero) {
-    char buffer[12];
-    sprintf(buffer, "%d", numero);
-    LCD_cadena(LCD, buffer);
+    char buffer[6];
+    if (numero == 0) {
+        LCD_texto(LCD, '0');
+        return;
+    }
+    int i = 0;
+    int temp = numero;
+    while (temp > 0) {
+        buffer[i++] = (temp % 10) + '0';
+        temp /= 10;
+    }
+    for (int j = i - 1; j >= 0; j--) {
+        LCD_texto(LCD, buffer[j]);
+    }
 }
 
 
@@ -121,7 +132,7 @@ void pintarplantilla(LCD_Structura *LCD){
 	LCD_cadena(LCD,"Frecuencia:");
 	LCD_xy(LCD, 0, 1);
 	LCD_cadena(LCD,"Dutty:");
-	HAL_Delay(200);
+	HAL_Delay(600);
 }
 
 
