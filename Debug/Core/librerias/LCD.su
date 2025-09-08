@@ -1,0 +1,9 @@
+../Core/librerias/LCD.c:9:15:LCD_Create	56	static
+../Core/librerias/LCD.c:29:6:LCD_Init	16	static
+../Core/librerias/LCD.c:42:6:LCD_Command	24	static
+../Core/librerias/LCD.c:65:6:LCD_texto	24	static
+../Core/librerias/LCD.c:88:6:LCD_cadena	32	static
+../Core/librerias/LCD.c:94:6:LCD_xy	16	static
+../Core/librerias/LCD.c:103:6:LCD_clear	16	static
+../Core/librerias/LCD.c:111:6:LCD_entero	32	static
+../Core/librerias/LCD.c:118:6:pintarplantilla	16	static
